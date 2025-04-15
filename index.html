@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hero Equipement - CoC Calculator</title>
+  <style>
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+        background: url('assets/bg.png') no-repeat center center fixed;
+        background-size: cover;
+        position: relative;
+        min-height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(5px);
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: -1;
+    }
+
+    .container {
+      background: #2d2d44;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+      animation: fadeIn 0.8s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 26px;
+      color: #ffcb05;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: 600;
+      color: #ddd;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #888;
+      background: #1c1c2a;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .rarity-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .rarity-button {
+      flex: 1;
+      padding: 12px;
+      margin: 0 5px;
+      background: #444;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .rarity-button.selected {
+      background: #ffcb05;
+      color: #121218;
+      box-shadow: 0 0 8px #ffcb05aa;
+    }
+
+    button.calculate-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background: #28a745;
+      border: none;
+      color: white;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+      margin-top: 10px;
+    }
+
+    button.calculate-btn:hover {
+      background: #34c759;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #1b1b2e;
+      border-radius: 12px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #f1f1f1;
+      border-left: 5px solid #ffcb05;
+    }
+
+    .bar-container {
+      margin-top: 20px;
+    }
+
+    .bar {
+      background: #333;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .bar span {
+      display: block;
+      height: 22px;
+      line-height: 22px;
+      padding-left: 10px;
+      font-weight: bold;
+      color: #fff;
+      transition: width 1s ease-in-out;
+    }
+
+    .shiny-bar { background-color: #00CED1; color: #000; }
+    .glowy-bar { background-color: #FFD700; }#FFD700
+    .starry-bar { background-color: #BA55D3; }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Hero Equipement - CoC Calculator</h2>
+
+    <div class="rarity-buttons">
+      <button id="commonButton" class="rarity-button selected" onclick="selectRarity('common')">Common</button>
+      <button id="epicButton" class="rarity-button" onclick="selectRarity('epic')">Epic</button>
+    </div>
+
+    <label for="currentLevel">Current Level</label>
+    <input type="number" id="currentLevel" placeholder="Ex: 1" min="1" max="27"/>
+
+    <label for="targetLevel">Target Level</label>
+    <input type="number" id="targetLevel" placeholder="Ex: 10" min="1" max="27"/>
+
+    <button class="calculate-btn" onclick="calculateCost()">Calculate</button>
+
+    <div class="result" id="result"></div>
+    <div class="bar-container" id="barContainer"></div>
+  </div>
+
+  <script>
+    let selectedRarity = "common";
+
+    function selectRarity(rarity) {
+      selectedRarity = rarity;
+      document.getElementById("commonButton").classList.remove("selected");
+      document.getElementById("epicButton").classList.remove("selected");
+      document.getElementById(rarity + "Button").classList.add("selected");
+      document.getElementById("result").innerHTML = "";
+      document.getElementById("barContainer").innerHTML = "";
+    }
+
+    const upgradeCosts = {
+      2: { shiny: 120, glowy: 0, starry: 0 },
+      3: { shiny: 240, glowy: 20, starry: 0 },
+      4: { shiny: 400, glowy: 0, starry: 0 },
+      5: { shiny: 600, glowy: 0, starry: 0 },
+      6: { shiny: 840, glowy: 100, starry: 0 },
+      7: { shiny: 1120, glowy: 0, starry: 0 },
+      8: { shiny: 1440, glowy: 0, starry: 0 },
+      9: { shiny: 1800, glowy: 200, starry: 10 },
+      10: { shiny: 1900, glowy: 0, starry: 0 },
+      11: { shiny: 2000, glowy: 0, starry: 0 },
+      12: { shiny: 2100, glowy: 400, starry: 20 },
+      13: { shiny: 2200, glowy: 0, starry: 0 },
+      14: { shiny: 2300, glowy: 0, starry: 0 },
+      15: { shiny: 2400, glowy: 600, starry: 30 },
+      16: { shiny: 2500, glowy: 0, starry: 0 },
+      17: { shiny: 2600, glowy: 0, starry: 0 },
+      18: { shiny: 2700, glowy: 600, starry: 50 },
+      19: { shiny: 2800, glowy: 0, starry: 0 },
+      20: { shiny: 2900, glowy: 0, starry: 0 },
+      21: { shiny: 3000, glowy: 600, starry: 100 },
+      22: { shiny: 3100, glowy: 0, starry: 0 },
+      23: { shiny: 3200, glowy: 0, starry: 0 },
+      24: { shiny: 3300, glowy: 600, starry: 120 },
+      25: { shiny: 3400, glowy: 0, starry: 0 },
+      26: { shiny: 3500, glowy: 0, starry: 0 },
+      27: { shiny: 3600, glowy: 600, starry: 150 }
+    };
+
+    function calculateCost() {
+  const current = parseInt(document.getElementById("currentLevel").value);
+  const target = parseInt(document.getElementById("targetLevel").value);
+  const result = document.getElementById("result");
+  const barContainer = document.getElementById("barContainer");
+
+  const maxLevel = selectedRarity === "common" ? 18 : 27;
+
+  if (isNaN(current) || isNaN(target)) {
+    result.innerHTML = "⚠️ Please enter both levels.";
+    return;
+  }
+
+  if (current >= target || current < 1 || target > maxLevel) {
+    result.innerHTML = `⚠️ For ${selectedRarity.toUpperCase()} equipment, choose levels between 1 and ${maxLevel}.`;
+    return;
+  }
+
+  let shiny = 0, glowy = 0, starry = 0;
+
+  for (let i = current + 1; i <= target; i++) {
+    const cost = upgradeCosts[i];
+    if (cost) {
+      shiny += cost.shiny;
+      glowy += cost.glowy;
+      if (selectedRarity === "epic") {
+        starry += cost.starry;
+      }
+    }
+  }
+
+  result.innerHTML = `
+    <span>🔰 <strong>Rarity:</strong> ${selectedRarity.toUpperCase()}</span>
+    <span>🪙 <strong>Shiny Ore:</strong> ${shiny}</span>
+    <span>💎 <strong>Glowy Ore:</strong> ${glowy}</span>
+    <span>✨ <strong>Starry Ore:</strong> ${selectedRarity === "epic" ? starry : "—"}</span>
+  `;
+
+  const max = Math.max(shiny, glowy, starry);
+  const getWidth = val => (val / max) * 100 + "%";
+
+  barContainer.innerHTML = `
+    <div class="bar"><span class="shiny-bar" style="width: ${getWidth(shiny)}">Shiny: ${shiny}</span></div>
+    <div class="bar"><span class="glowy-bar" style="width: ${getWidth(glowy)}">Glowy: ${glowy}</span></div>
+    <div class="bar"><span class="starry-bar" style="width: ${getWidth(starry)}">Starry: ${selectedRarity === "epic" ? starry : 0}</span></div>
+  `;
+}
+
+  </script>
+</body>
+</html>
